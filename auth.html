@@ -1,0 +1,84 @@
+<html>
+<head>
+<script src="https://cdn.rawgit.com/knsv/mermaid/master/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true});</script>
+<style type="text/css">
+        .scrollable{
+            overflow: scroll;
+            width: 1200px;
+        }
+    </style>
+</head>
+<body class="scrollable">
+<div class="mermaid" >
+sequenceDiagram
+participant User
+participant MobileApp
+participant LocalStorage
+User->> MobileApp: start application
+Note over MobileApp,AuthService: TODO: verify app init
+MobileApp->> AuthService: initialize
+MobileApp->> LocalStorage: check auth token
+LocalStorage-->> MobileApp: stored auth token
+Note over MobileApp,AuthService: authentication is required to 
+
+alt no token
+MobileApp->> AuthService: authenticate anonymously
+AuthService->> AuthServer: authenticate anonymously
+AuthServer-->> AuthService: auth data (callback)
+AuthService-->> MobileApp: auth data (callback)
+else existing token
+MobileApp->> AuthService: authenticate with token
+AuthService->> AuthServer: authenticate with token
+AuthServer-->> AuthService: auth data (callback)
+AuthService-->> MobileApp: auth data (callback)
+opt ERROR
+AuthService-->> MobileApp: token error (callback)
+MobileApp->> LocalStorage: clear auth token
+Note right of MobileApp: call: [no token]
+end 
+end
+MobileApp->> LocalStorage: store auth token
+
+# subscenario
+User->> MobileApp: Use app (ie create collection)
+MobileApp->> DB: persist data
+Note over User,MobileApp: when anonymously authenticated:
+User->> MobileApp: auth with oAuth [provider]
+MobileApp->> DB: get user data snapshot
+DB-->> MobileApp: user data (callback)
+MobileApp->> LocalStorage: save user data snapshot
+LocalStorage-->> MobileApp: async response
+MobileApp->> AuthService: unauthenticate 
+AuthService->> AuthServer: unauthenticate
+AuthServer-->> AuthService: auth data (callback) optional?
+AuthService-->> MobileApp: auth data (callback) optional?
+MobileApp->> AuthService: authenticate with oAuth [provider] 
+AuthService->> AuthServer: authenticate with oAuth [provider] 
+AuthServer->> MobileApp: oAuth provider address (InAppBrowser / popup)
+MobileApp->> oAuth provider: load authenticate page 
+oAuth provider-->> MobileApp: authentication page 
+MobileApp-->> User: authentication page
+User->> MobileApp: provide/choose auth data
+MobileApp->> oAuth provider: process auth 
+oAuth provider-->> MobileApp: auth result
+opt InAppBrowser
+MobileApp->> AuthService: initialize
+end
+AuthService->> MobileApp: onAuth callback
+MobileApp->> LocalStorage: store auth token
+LocalStorage-->> MobileApp: confirm callback
+MobileApp->> LocalStorage: checkState (i.e. local data snapshot)
+LocalStorage-->> MobileApp: user data callback
+MobileApp->> DB: check user data (ie is new user?)
+DB-->> MobileApp: user data (callback)
+opt existing user
+MobileApp-->> User: not possible to migrate data
+Note over User,MobileApp: break data migration and continue using original user data
+end
+MobileApp->> DB: store user data
+DB-->> MobileApp: user data (callback)
+</div>
+</body>
+</html>
+
