@@ -1,16 +1,33 @@
 <html>
 <head>
 <script src="https://cdn.rawgit.com/knsv/mermaid/master/dist/mermaid.min.js"></script>
-<script>mermaid.initialize({startOnLoad:true});</script>
+<script>mermaid.initialize({startOnLoad:true, sequenceDiagram:{useMaxWidth: true}});</script>
 <style type="text/css">
-        .scrollable{
-            overflow: scroll;
-            width: 1200px;
-        }
+/*
+ * full width svg thanks to:
+ * https://css-tricks.com/scale-svg/
+ */
+        .scaling-svg-container {
+			 position: relative; 
+			 height: 0; 
+			 width: 120%; 
+			 padding: 0;
+			 padding-bottom: 100%; 
+			 /* override this inline for aspect ratio other than square */
+			}
+			.scaling-svg-container svg {
+			 position: absolute; 
+			 height: 120%; /* why 100% still is not 100%? */ 
+			 width: 120%; 
+			 left: 0; 
+			 top: 0;
+			}
     </style>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"> -->
 </head>
-<body class="scrollable">
-<div class="mermaid" >
+<body >
+
+<div class="mermaid scaling-svg-container" >
 sequenceDiagram
 participant User
 participant MobileApp
