@@ -1,6 +1,7 @@
 <html>
 <head>
-<script src="https://cdn.rawgit.com/knsv/mermaid/master/dist/mermaid.min.js"></script>
+<meta http-equiv="content-type" content="text/html; charset=UTF8">
+<script src="mermaid.min.js"></script>
 <script>mermaid.initialize({startOnLoad:true, sequenceDiagram:{useMaxWidth: true}});</script>
 <style type="text/css">
 /*
@@ -35,12 +36,14 @@ participant LocalStorage
 User->> MobileApp: start application
 Note over MobileApp,AuthService: TODO: verify app init
 MobileApp->> AuthService: initialize
+activate MobileApp
 MobileApp->> LocalStorage: check auth token
 LocalStorage-->> MobileApp: stored auth token
 Note over MobileApp,AuthService: authentication is required to 
 
 alt no token
 MobileApp->> AuthService: authenticate anonymously
+activate MobileApp
 AuthService->> AuthServer: authenticate anonymously
 AuthServer-->> AuthService: auth data (callback)
 AuthService-->> MobileApp: auth data (callback)
@@ -52,6 +55,7 @@ AuthService-->> MobileApp: auth data (callback)
 opt ERROR
 AuthService-->> MobileApp: token error (callback)
 MobileApp->> LocalStorage: clear auth token
+deactivate MobileApp
 Note right of MobileApp: call: [no token]
 end 
 end
@@ -59,6 +63,7 @@ MobileApp->> LocalStorage: store auth token
 
 # subscenario
 User->> MobileApp: Use app (ie create collection)
+deactivate MobileApp
 MobileApp->> DB: persist data
 Note over User,MobileApp: when anonymously authenticated:
 User->> MobileApp: auth with oAuth [provider]
