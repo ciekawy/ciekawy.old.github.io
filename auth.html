@@ -2,6 +2,7 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF8">
 <script src="mermaid.min.js"></script>
+<!-- <script type="text/javascript" src="https://rawgit.com/knsv/mermaid/master/dist/mermaid.min.js"></script> -->
 <script>mermaid.initialize({startOnLoad:true, sequenceDiagram:{useMaxWidth: true}});</script>
 <style type="text/css">
 /*
@@ -33,54 +34,51 @@ sequenceDiagram
 participant User
 participant MobileApp
 participant LocalStorage
-User->> MobileApp: start application
+User->>+ MobileApp: start application
 Note over MobileApp,AuthService: TODO: verify app init
 MobileApp->> AuthService: initialize
-activate MobileApp
-MobileApp->> LocalStorage: check auth token
-LocalStorage-->> MobileApp: stored auth token
+MobileApp->>+ LocalStorage: check auth token
+LocalStorage-->>- MobileApp: stored auth token
 Note over MobileApp,AuthService: authentication is required to 
 
 alt no token
-MobileApp->> AuthService: authenticate anonymously
-activate MobileApp
-AuthService->> AuthServer: authenticate anonymously
-AuthServer-->> AuthService: auth data (callback)
-AuthService-->> MobileApp: auth data (callback)
+MobileApp->>+ AuthService: authenticate anonymously
+AuthService->>+ AuthServer: authenticate anonymously
+AuthServer-->>- AuthService: auth data (callback)
+AuthService-->>- MobileApp: auth data (callback)
 else existing token
-MobileApp->> AuthService: authenticate with token
-AuthService->> AuthServer: authenticate with token
-AuthServer-->> AuthService: auth data (callback)
+MobileApp->>+ AuthService: authenticate with token
+AuthService->>+ AuthServer: authenticate with token
+AuthServer-->>- AuthService: auth data (callback)
 AuthService-->> MobileApp: auth data (callback)
 opt ERROR
-AuthService-->> MobileApp: token error (callback)
+AuthService-->>- MobileApp: token error (callback)
 MobileApp->> LocalStorage: clear auth token
-deactivate MobileApp
 Note right of MobileApp: call: [no token]
 end 
 end
+MobileApp->>- User: notify auth result 
 MobileApp->> LocalStorage: store auth token
 
 # subscenario
 User->> MobileApp: Use app (ie create collection)
-deactivate MobileApp
 MobileApp->> DB: persist data
 Note over User,MobileApp: when anonymously authenticated:
-User->> MobileApp: auth with oAuth [provider]
+User->>+ MobileApp: auth with oAuth [provider]
 MobileApp->> DB: get user data snapshot
 DB-->> MobileApp: user data (callback)
 MobileApp->> LocalStorage: save user data snapshot
 LocalStorage-->> MobileApp: async response
-MobileApp->> AuthService: unauthenticate 
+MobileApp->>+ AuthService: unauthenticate 
 AuthService->> AuthServer: unauthenticate
 AuthServer-->> AuthService: auth data (callback) optional?
-AuthService-->> MobileApp: auth data (callback) optional?
+AuthService-->>- MobileApp: auth data (callback) optional?
 MobileApp->> AuthService: authenticate with oAuth [provider] 
 AuthService->> AuthServer: authenticate with oAuth [provider] 
 AuthServer->> MobileApp: oAuth provider address (InAppBrowser / popup)
 MobileApp->> oAuth provider: load authenticate page 
 oAuth provider-->> MobileApp: authentication page 
-MobileApp-->> User: authentication page
+MobileApp-->>- User: authentication page
 User->> MobileApp: provide/choose auth data
 MobileApp->> oAuth provider: process auth 
 oAuth provider-->> MobileApp: auth result
